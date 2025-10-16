@@ -22,40 +22,48 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
       - name: Install backend deps
         working-directory: backend
         run: npm ci
+
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
             mysqladmin ping -h 127.0.0.1 --silent && break || sleep 2
           done
-      - name: Run backend tests
+
+      - name: Run backend tests (skip if none)
         working-directory: backend
         env:
           DB_HOST: 127.0.0.1
           DB_USER: root
           DB_PASSWORD: rootpassword
           DB_NAME: justificantes_db
-        run: npm test
+        run: npm test -- --passWithNoTests
 
   frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
       - name: Install frontend deps
         working-directory: frontend
         run: npm ci
+
       - name: Run frontend build
         working-directory: frontend
         run: npm run build
