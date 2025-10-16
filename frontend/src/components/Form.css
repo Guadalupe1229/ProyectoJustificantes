@@ -1,0 +1,122 @@
+/* Estilos generales para el body (si aún no los tienes definidos en Sol.css) */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7fa; /* Fondo general más claro */
+  color: #333;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.form-container {
+  max-width: 550px; /* Ancho moderado para el formulario */
+  margin: 50px auto; /* Centrar con más margen */
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08); /* Sombra más definida */
+  border-top: 5px solid #007bff; /* Borde superior azul para destacar */
+}
+
+.form-title {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 2em;
+  font-weight: 600;
+}
+
+.form-description {
+  text-align: center;
+  color: #6c757d;
+  margin-bottom: 30px;
+  font-size: 1.05em;
+  line-height: 1.5;
+}
+
+.solicitud-form .form-group {
+  margin-bottom: 20px;
+}
+
+.solicitud-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.95em;
+}
+
+.solicitud-form input[type="text"],
+.solicitud-form input[type="date"],
+.solicitud-form textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1em;
+  color: #495057;
+  background-color: #f8f9fa; /* Fondo ligeramente gris para los inputs */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box; /* Asegura que padding no aumente el ancho */
+}
+
+.solicitud-form input:focus,
+.solicitud-form textarea:focus {
+  border-color: #007bff; /* Borde azul al enfocar */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Sombra de enfoque */
+  outline: none; /* Quitar el outline por defecto */
+  background-color: #ffffff;
+}
+
+.solicitud-form textarea {
+  resize: vertical; /* Permitir redimensionar solo verticalmente */
+  min-height: 90px; /* Altura mínima para el textarea */
+}
+
+.submit-button {
+  width: 100%;
+  padding: 14px 20px;
+  background-color: #28a745; /* Botón verde para "Enviar" */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 20px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #218838; /* Verde más oscuro al pasar el ratón */
+  transform: translateY(-2px); /* Pequeño efecto de elevación */
+}
+
+.submit-button:disabled {
+  background-color: #cccccc; /* Gris para el estado deshabilitado */
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Mensajes de feedback */
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-top: 15px;
+  text-align: center;
+  font-size: 0.95em;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-top: 15px;
+  text-align: center;
+  font-size: 0.95em;
+}

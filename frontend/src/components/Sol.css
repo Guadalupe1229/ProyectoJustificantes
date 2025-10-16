@@ -1,0 +1,131 @@
+body {
+  background-color: #f0f2f5; /* Fondo más suave para toda la página */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.solicitudes-container {
+  max-width: 700px; /* Ancho un poco mayor */
+  margin: 40px auto; /* Margen superior e inferior para centrar mejor */
+  padding: 25px; /* Relleno interno */
+  background-color: #ffffff; /* Fondo blanco para el contenedor principal */
+  border-radius: 12px; /* Bordes más redondeados */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fuente más moderna */
+  color: #333;
+}
+
+.container-title {
+  text-align: center;
+  color: #2c3e50; /* Color de título más oscuro */
+  margin-bottom: 30px;
+  font-size: 2.2em; /* Tamaño de título más grande */
+  font-weight: 600;
+  position: relative;
+}
+
+.container-title::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background-color: #4CAF50; /* Línea decorativa verde */
+  border-radius: 2px;
+}
+
+.loading-message,
+.error-message,
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 1.1em;
+}
+
+.loading-message {
+  background-color: #e3f2fd;
+  color: #2196f3;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #f44336;
+}
+
+.empty-state {
+  background-color: #f0f4c3;
+  color: #689f38;
+  border: 1px dashed #aed581;
+}
+
+
+.solicitudes-list {
+  list-style: none;
+  padding: 0;
+}
+
+.solicitud-item {
+  background-color: #fdfdfd; /* Fondo casi blanco para los ítems */
+  border: 1px solid #e0e0e0; /* Borde suave */
+  border-left: 6px solid #4CAF50; /* Borde izquierdo más grueso y verde */
+  margin-bottom: 15px; /* Más espacio entre ítems */
+  padding: 15px 20px; /* Más relleno */
+  border-radius: 8px; /* Bordes más redondeados */
+  transition: all 0.3s ease; /* Transición suave en hover */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+}
+
+.solicitud-item:hover {
+  background-color: #e8f5e9; /* Verde claro al pasar el ratón */
+  transform: translateY(-3px); /* Efecto de "levantar" */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Sombra más intensa en hover */
+}
+
+.solicitud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Centrar verticalmente */
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee; /* Separador sutil */
+}
+
+.solicitud-nombre {
+  font-weight: 700; /* Nombre más en negrita */
+  color: #263238; /* Color oscuro para el nombre */
+  font-size: 1.2em;
+}
+
+.solicitud-grupo {
+  background-color: #e0f7fa; /* Fondo azul claro para el grupo */
+  color: #00838f; /* Texto azul oscuro */
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.solicitud-motivo {
+  margin: 10px 0;
+  color: #555;
+  line-height: 1.6; /* Interlineado para mejor legibilidad */
+  font-size: 1em;
+}
+
+.solicitud-footer {
+  text-align: right; /* Fecha a la derecha */
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #eee; /* Separador para el pie */
+}
+
+.solicitud-fecha {
+  font-size: 0.9em;
+  color: #777; /* Color de fecha más suave */
+  font-style: italic; /* Fecha en cursiva */
+}
