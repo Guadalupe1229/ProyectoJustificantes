@@ -12,7 +12,7 @@ export default function SolicitudesList() {
       try {
         setLoading(true);
         const res = await axios.get(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/solicitudes`
+          `${process.env.REACT_APP_API_URL || 'https://proyectojustificantes.onrender.com`
         );
         setSolicitudes(res.data);
       } catch (err) {
