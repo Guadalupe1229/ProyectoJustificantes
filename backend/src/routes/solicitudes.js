@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
     }
 
     const [result] = await pool.query(
-      'INSERT INTO solicitudes (nombre, grupo, motivo, fecha_ausencia) VALUES (?, ?, ?, ?)',
+      'INSERT INTO solicitudes1 (nombre, grupo, motivo, fecha_ausencia) VALUES (?, ?, ?, ?)',
       [nombre, grupo, motivo, fecha_ausencia]
     );
 
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      'SELECT * FROM solicitudes WHERE id = ?',
+      'SELECT * FROM solicitudes1 WHERE id = ?',
       [result.insertId]
     );
 
@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM solicitudes ORDER BY fecha_solicitud DESC'
+      'SELECT * FROM solicitudes1 ORDER BY fecha_solicitud DESC'
     );
     res.json(rows);
   } catch (err) {
