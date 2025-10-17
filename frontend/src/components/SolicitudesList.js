@@ -11,7 +11,7 @@ export default function SolicitudesList() {
     const fetchSolicitudes = async () => {
       try {
         setLoading(true);
-        const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/solicitudes`,form);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/solicitudes`);
         setSolicitudes(res.data);
       } catch (err) {
         console.error('Error al obtener solicitudes:', err);
