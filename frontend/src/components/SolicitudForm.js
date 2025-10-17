@@ -29,7 +29,7 @@ export default function SolicitudForm({ onCreated }) {
     setErrorMessage('');
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'https://proyectojustificantes.onrender.com`, form);
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/solicitudes';
       setForm({ nombre: '', grupo: '', motivo: '', fecha_ausencia: '' }); // Limpiar formulario
       setSuccessMessage('¡Solicitud enviada con éxito!');
       onCreated?.(res.data); // Notificar al componente padre
