@@ -27,15 +27,17 @@ router.post('/', async (req, res) => {
 });
 
 // GET /solicitudes
-try {
-  const [rows] = await pool.query('SELECT * FROM solicitudes');
-  console.log(rows);
-  res.json(rows);
-} catch(err) {
-  console.error('Error DB:', err);
-  res.status(500).json({ error: 'Error del servidor' });
-}
-
+router.get('/', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM solicitudes ORDER BY fecha_solicitud DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
 
 module.exports = router;
 
