@@ -7,6 +7,13 @@ const solicitudesRouter = require('./routes/solicitudes');
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Ruta principal para probar conexión
+app.get('/', (req, res) => {
+  res.send('✅ API de Justificantes funcionando correctamente');
+});
+
+// Rutas del sistema de solicitudes
 app.use('/solicitudes', solicitudesRouter);
 
 const port = process.env.PORT || 4000;
