@@ -11,34 +11,37 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
+    // 1️⃣ Obtener el último ID registrado
+    const [rows] = await pool.query('SELECT MAX(id) AS maxId FROM solicitudes');
+    const nuevoId = (rows[0].maxId || 0) + 1;
+
+    // 2️⃣ Insertar el nuevo registro con el id manual
     const [result] = await pool.query(
-      'INSERT INTO solicitudes (nombre, grupo, motivo, fecha_ausencia) VALUES (?, ?, ?, ?)',
-      [nombre, grupo, motivo, fecha_ausencia]
+      'INSERT INTO solicitudes (id, nombre, grupo, motivo, fecha_ausencia) VALUES (?, ?, ?, ?, ?)',
+      [nuevoId, nombre, grupo, motivo, fecha_ausencia]
     );
 
-    // Comprobamos si el insert fue exitoso
-    if (!result.insertId) {
+    // 3️⃣ Verificar el resultado e intentar devolver el registro insertado
+    if (!result.affectedRows) {
       return res.status(500).json({ error: 'No se pudo crear la solicitud' });
     }
 
-    const [rows] = await pool.query(
+    const [nuevaSolicitud] = await pool.query(
       'SELECT * FROM solicitudes WHERE id = ?',
-      [result.insertId]
+      [nuevoId]
     );
 
-    res.status(201).json(rows[0]);
+    res.status(201).json(nuevaSolicitud[0]);
   } catch (err) {
     console.error('Error en POST /solicitudes:', err.message);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
-// GET /solicitudes
+// ✅ GET /solicitudes (opcional, si lo necesitas)
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM solicitudes ORDER BY fecha_solicitud DESC'
-    );
+    const [rows] = await pool.query('SELECT * FROM solicitudes ORDER BY id DESC');
     res.json(rows);
   } catch (err) {
     console.error('Error en GET /solicitudes:', err.message);
