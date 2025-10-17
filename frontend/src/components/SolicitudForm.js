@@ -22,24 +22,30 @@ export default function SolicitudForm({ onCreated }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccessMessage('');
-    setErrorMessage('');
+const handleSubmit = async e => {
+  e.preventDefault();
+  setLoading(true);
+  setSuccessMessage('');
+  setErrorMessage('');
 
-    try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/solicitudes`);
-      setForm({ nombre: '', grupo: '', motivo: '', fecha_ausencia: '' }); // Limpiar formulario
-      setSuccessMessage('¡Solicitud enviada con éxito!');
-      onCreated?.(res.data); // Notificar al componente padre
-    } catch (err) {
-      console.error('Error al enviar solicitud:', err);
-      setErrorMessage('Error al enviar la solicitud. Por favor, inténtalo de nuevo.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    // Aquí usamos POST y enviamos los datos del formulario
+    const res = await axios.post(
+      `${process.env.REACT_APP_API_URL}/solicitudes`,
+      form
+    );
+
+    // Limpiar formulario y mostrar mensaje de éxito
+    setForm({ nombre: '', grupo: '', motivo: '', fecha_ausencia: '' });
+    setSuccessMessage('¡Solicitud enviada con éxito!');
+    onCreated?.(res.data); // Notificar al componente padre
+  } catch (err) {
+    console.error('Error al enviar solicitud:', err);
+    setErrorMessage('Error al enviar la solicitud. Por favor, inténtalo de nuevo.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="form-container">
