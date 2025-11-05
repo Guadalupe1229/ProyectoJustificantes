@@ -29,8 +29,9 @@ export default function SolicitudForm({ onCreated }) {
 
     // --- Validación de fecha ---
     const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fechas
+    hoy.setHours(0, 0, 0, 0);
     const fechaAusencia = new Date(form.fecha_ausencia);
+    fechaAusencia.setHours(0, 0, 0, 0);
 
     if (isNaN(fechaAusencia.getTime())) {
       setErrorMessage('Por favor, selecciona una fecha válida.');
@@ -38,14 +39,9 @@ export default function SolicitudForm({ onCreated }) {
       return;
     }
 
+    // ❌ No permitir fechas futuras
     if (fechaAusencia > hoy) {
       setErrorMessage('La fecha de ausencia no puede ser posterior al día actual.');
-      setLoading(false);
-      return;
-    }
-
-    if (fechaAusencia < hoy) {
-      setErrorMessage('La fecha de ausencia no puede ser anterior al día actual.');
       setLoading(false);
       return;
     }
@@ -66,6 +62,9 @@ export default function SolicitudForm({ onCreated }) {
       setLoading(false);
     }
   };
+
+  // 🗓️ Evitar seleccionar fechas futuras desde el input
+  const maxDate = new Date().toISOString().split('T')[0];
 
   return (
     <div className="form-container">
@@ -122,6 +121,7 @@ export default function SolicitudForm({ onCreated }) {
             type="date"
             value={form.fecha_ausencia}
             onChange={handleChange}
+            max={maxDate} // ⛔ impide seleccionar fechas futuras
             required
           />
         </div>
