@@ -49,23 +49,74 @@ jobs:
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
+            console.log("Fetching CodeQL alerts...");
             const alerts = await github.rest.codeScanning.listAlertsForRepo({
-              owner, repo, state: 'open', per_page: 100
+              owner,
+              repo,
+              state: "open",
+              per_page: 100
             });
 
+            console.log(`Found ${alerts.data.length} alerts`);
+
+            // Get existing code-scanning issues
             const existingIssues = await github.rest.issues.listForRepo({
-              owner, repo, labels: 'code-scanning', state: 'open'
+              owner,
+              repo,
+              labels: "code-scanning",
+              state: "open"
             });
+
+            function matches(a, b) {
+              return a.trim().toLowerCase() === b.trim().toLowerCase();
+            }
 
             function alreadyExists(title) {
-              return existingIssues.data.some(i => i.title === title);
+              return existingIssues.data.some(i => matches(i.title, title));
             }
 
             for (const alert of alerts.data) {
               const rule   = alert.rule?.id || "Unknown Rule";
               const sev    = alert.rule?.severity || "unknown";
               const tool   = alert.tool?.name || "CodeQL";
+
               const file   = alert.most_recent_instance?.location?.path || "N/A";
               const line   = alert.most_recent_instance?.location?.start_line || "N/A";
 
-              const title = `Cod
+              const title = `CodeQL: ${rule} (${sev.toUpperCase()}) in ${file}:${line}`;
+
+              if (alreadyExists(title)) {
+                console.log(`Skipping existing issue: ${title}`);
+                continue;
+              }
+
+              const body = `
+### CodeQL Alert Details
+
+**Rule:** ${rule}  
+**Severity:** ${sev}  
+**Tool:** ${tool}  
+
+**File:** ${file}  
+**Line:** ${line}  
+
+---
+
+### Raw alert data
+\`\`\`json
+${JSON.stringify(alert, null, 2)}
+\`\`\`
+              `;
+
+              console.log(`Creating issue: ${title}`);
+
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+                labels: ["code-scanning", "security", "automated"]
+              });
+            }
+
+            console.log("Issue creation completed.");
