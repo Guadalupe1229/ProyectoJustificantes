@@ -1,50 +1,141 @@
-name: Crear issues automáticos desde CodeQL
+name: CodeQL scan + Create Issues
 
+# Ejecuta en pushes y PRs (igual que tu CI)
 on:
-  schedule:
-    - cron: "0 */6 * * *"   # cada 6 horas
-  workflow_dispatch:       # permite ejecutarlo manualmente
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# PERMISSIONS: necesario para que el workflow pueda crear issues y consultar alertas
+permissions:
+  contents: read
+  issues: write
+  security-events: write
 
 jobs:
-  create_issues:
+  codeql-analysis:
+    name: Run CodeQL analysis
     runs-on: ubuntu-latest
-
-    permissions:
-      security-events: read
-      issues: write
-      contents: read
-
     steps:
-      - name: Obtener alertas de CodeQL y crear issues
-        uses: actions/github-script@v7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, python  # ajusta según tus lenguajes (ej. "javascript" para Node.js)
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+        # si tu proyecto requiere build especial, reemplaza por pasos personalizados
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v2
+        # no es necesario añadir output; CodeQL sube resultados a Code Scanning automáticamente
+
+  create-issues-from-codeql:
+    name: Create GitHub Issues from CodeQL alerts
+    runs-on: ubuntu-latest
+    needs: codeql-analysis
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Wait for Code Scanning alerts to be available
+        run: |
+          echo "Waiting a few seconds for CodeQL alerts to appear..."
+          sleep 15
+
+      - name: Create issues from code scanning alerts
+        uses: actions/github-script@v6
         with:
           script: |
-            const alerts = await github.rest.codeScanning.listAlertsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: "open"
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Obtener alertas abiertas de Code Scanning (CodeQL)
+            // Nota: listAlertsForRepo puede devolver alertas en estado "open" / "fixed"
+            const alertsResponse = await github.rest.codeScanning.listAlertsForRepo({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
             });
 
-            for (const alert of alerts.data) {
-              const file = alert.most_recent_instance?.location?.path || "Archivo no detectado";
-              const line = alert.most_recent_instance?.location?.startLine || "Desconocido";
+            const alerts = alertsResponse.data || [];
+            console.log(`Found ${alerts.length} open code-scanning alerts.`);
 
+            // Obtener issues abiertos con etiqueta 'code-scanning' para evitar duplicados
+            const issuesResp = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              labels: 'code-scanning',
+              per_page: 100
+            });
+            const openIssues = issuesResp.data || [];
+
+            function issueExists(title) {
+              return openIssues.some(i => i.title === title);
+            }
+
+            for (const a of alerts) {
+              // construir título y cuerpo del issue
+              const ruleId = a.rule && (a.rule.id || a.rule.id) || (a.rule && a.rule.summary) || 'Unknown-Rule';
+              const severity = (a.rule && a.rule.severity) || (a.rule && a.rule.properties && a.rule.properties.severity) || 'unknown';
+              const tool = a.tool && a.tool.name ? a.tool.name : 'CodeQL';
+              // localizar archivo/linea (intenta varios caminos)
+              let location = 'N/A';
+              try {
+                if (a.instances && a.instances.length > 0) {
+                  const inst = a.instances[0];
+                  if (inst.location && inst.location.path) {
+                    location = `${inst.location.path}:${inst.location.start_line || inst.location.startLine || ''}`;
+                  } else if (inst.location && inst.location.physicalLocation && inst.location.physicalLocation.artifactLocation) {
+                    location = inst.location.physicalLocation.artifactLocation.uri || 'N/A';
+                  }
+                } else if (a.locations && a.locations.length > 0) {
+                  const loc = a.locations[0];
+                  if (loc.physicalLocation && loc.physicalLocation.artifactLocation)
+                    location = loc.physicalLocation.artifactLocation.uri || 'N/A';
+                } else if (a.html_url) {
+                  location = a.html_url;
+                }
+              } catch (e) {
+                // ignore parse errors
+              }
+
+              const title = `CodeQL: ${ruleId} — ${severity} (${tool})`;
+              if (issueExists(title)) {
+                console.log(`Skipping creation; issue already exists: ${title}`);
+                continue;
+              }
+
+              const body = [
+                `### Descripción`,
+                `${a.rule && (a.rule.description || a.rule.summary) ? (a.rule.description || a.rule.summary) : 'Descripción no disponible.'}`,
+                ``,
+                `**Regla / ID:** ${ruleId}`,
+                `**Severidad:** ${severity}`,
+                `**Herramienta:** ${tool}`,
+                `**Ubicación (archivo/línea):** ${location}`,
+                ``,
+                `**Referencia (Code Scanning alert):** ${a.html_url || 'enlace no disponible'}`,
+                ``,
+                `---`,
+                `*Este issue fue creado automáticamente por el workflow de CodeQL.*`
+              ].join('\n');
+
+              console.log(`Creating issue: ${title}`);
               await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `CodeQL: ${alert.rule.description} en ${file}`,
-                body: `
-**Severidad:** ${alert.rule.severity}
-**Archivo:** ${file}
-**Línea:** ${line}
-**Regla:** ${alert.rule.id}
-
-**Descripción del problema:**  
-${alert.rule.description}
-
-**Sugerencia de corrección:**  
-Revisar el archivo indicado y aplicar las recomendaciones del motor CodeQL para reforzar seguridad.
-`,
-                labels: ["security", "codeql", alert.rule.severity]
+                owner,
+                repo,
+                title,
+                body,
+                labels: ['code-scanning', 'security', severity.toLowerCase()]
               });
             }
+
+      - name: Done
+        run: echo "Issue creation step finished."
