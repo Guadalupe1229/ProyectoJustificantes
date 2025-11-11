@@ -49,69 +49,56 @@ jobs:
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
-            console.log("Getting CodeQL alerts...");
             const alerts = await github.rest.codeScanning.listAlertsForRepo({
-              owner,
-              repo,
+              owner: owner,
+              repo: repo,
               state: "open",
               per_page: 100
             });
 
-            console.log(`Total alerts found: ${alerts.data.length}`);
-
             const existingIssues = await github.rest.issues.listForRepo({
-              owner,
-              repo,
+              owner: owner,
+              repo: repo,
               labels: "code-scanning",
               state: "open"
             });
 
-            function alreadyExists(title) {
+            function exists(title) {
               return existingIssues.data.some(
                 issue => issue.title.trim().toLowerCase() === title.trim().toLowerCase()
               );
             }
 
             for (const alert of alerts.data) {
+              const rule = alert.rule && alert.rule.id ? alert.rule.id : "Unknown";
+              const sev  = alert.rule && alert.rule.severity ? alert.rule.severity : "unknown";
+              const tool = alert.tool && alert.tool.name ? alert.tool.name : "CodeQL";
 
-              const rule = alert.rule?.id || "Unknown Rule";
-              const sev  = alert.rule?.severity || "unknown";
-              const tool = alert.tool?.name || "CodeQL";
+              const loc  = alert.most_recent_instance && alert.most_recent_instance.location;
+              const file = loc && loc.path ? loc.path : "N/A";
+              const line = loc && loc.start_line ? loc.start_line : "N/A";
 
-              const file = alert.most_recent_instance?.location?.path || "N/A";
-              const line = alert.most_recent_instance?.location?.start_line || "N/A";
+              const title = "CodeQL Alert: " + rule + " (" + sev + ") at " + file + ":" + line;
 
-              const title = `CodeQL Alert: ${rule} (${sev.toUpperCase()}) at ${file}:${line}`;
-
-              if (alreadyExists(title)) {
-                console.log(`Issue already exists: ${title}`);
+              if (exists(title)) {
                 continue;
               }
 
-              const body = `
-### CodeQL Alert Report
-
-**Rule:** ${rule}  
-**Severity:** ${sev}  
-**Tool:** ${tool}  
-**File:** ${file}  
-**Line:** ${line}  
-
----
-
-### Full Alert JSON
-\`\`\`json
-${JSON.stringify(alert, null, 2)}
-\`\`\`
-              `;
+              const body =
+                "CodeQL Alert\n\n" +
+                "Rule: " + rule + "\n" +
+                "Severity: " + sev + "\n" +
+                "Tool: " + tool + "\n" +
+                "File: " + file + "\n" +
+                "Line: " + line + "\n\n" +
+                "Raw alert JSON:\n" +
+                JSON.stringify(alert, null, 2);
 
               await github.rest.issues.create({
-                owner,
-                repo,
-                title,
-                body,
+                owner: owner,
+                repo: repo,
+                title: title,
+                body: body,
                 labels: ["code-scanning", "security", "automated"]
               });
-
-              console.log(`Created new Issue: ${title}`);
             }
